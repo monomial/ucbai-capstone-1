@@ -33,16 +33,9 @@ Consolidated the final disposition codes into 6 options:
 - **Evaluation Metrics**: Models were evaluated using accuracy, precision, recall, and F1-score. Hyperparameter tuning was performed using Grid Search.
 
 ## Results
-- The **Baseline model** achieved an accuracy of 0.89, as expected, since it only predicts the most frequent class.
-- **Logistic Regression** performed well with an accuracy of 0.91 after hyperparameter tuning.
-- The **MLP neural network** achieved an accuracy of 0.91, suggesting that more complex models may improve performance slightly.
-- **Random Forest** performed similarly to others with an accuracy of 0.91 after hyperparameter tuning.
-- Class imbalance remains a challenge, especially for minority classes like arrest outcomes.
-
-## Results
 
 | Model              | Accuracy  | Recall (macro) | Precision (macro) | F1-score (macro)  |
-|--------------------|-----------|-----------|-----------|-----------|
+|--------------------|-----------|----------:|----------:|----------:|
 | Baseline           | 0.962488  | 0.250000  | 0.240622  | 0.245221  |
 | Logistic Regression| 0.969396  | 0.513951  | 0.691921  | 0.571131  |
 | Random Forest      | 0.957442  | 0.503261  | 0.521498  | 0.507291  |
@@ -56,8 +49,8 @@ Consolidated the final disposition codes into 6 options:
 - The **Baseline model** produced an F1 score of 0.245, as expected, since it only predicts the most frequent class and has limited ability to handle minority outcomes.
 - **Logistic Regression** achieved a strong performance with an F1 score of 0.571, showing effective handling of the imbalanced dataset after tuning.
 - The **Random Forest model** yielded an F1 score of 0.507, performing moderately but struggling slightly with precision compared to Logistic Regression.
-- Among the **MLP models**, **MLP3** performed the best with an F1 score of 0.586, while **MLP1** and **MLP2** achieved scores of 0.562 and 0.500, respectively, indicating that MLP models can capture minority outcomes well with the right configurations.
-- The **CNN models** showed competitive performance, with **CNN1** achieving an F1 score of 0.579, followed by **CNN3** at 0.565 and **CNN2** at 0.536, suggesting that convolutional networks are capable of strong results on this dataset.
+- Among the **Multi-Layer Perceptron models**, **MLP3** performed the best with an F1 score of 0.586, while **MLP1** and **MLP2** achieved scores of 0.562 and 0.500, respectively, indicating that MLP models can capture minority outcomes well with the right configurations.
+- The **Convolutional Neural Network models** showed competitive performance, with **CNN1** achieving an F1 score of 0.579, followed by **CNN3** at 0.565 and **CNN2** at 0.536, suggesting that convolutional networks are capable of strong results on this dataset.
 
 Overall, class imbalance continues to present challenges, but several models, especially Logistic Regression, MLP3, and CNN1, show promise in balancing precision and recall for minority classes.
 
