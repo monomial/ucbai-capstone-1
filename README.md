@@ -17,19 +17,17 @@ The data for this project comes from the [San Jose Police Calls For Service data
 ## Methodology
 - **Data Cleaning**: Removed rows with missing data and unnecessary columns.
 - **Feature Engineering**: Created features such as `OFFENSE_HOUR`, `OFFENSE_DAY_OF_WEEK`, and encoded categorical features like `CALLTYPE_CODE`.  Added latitude and longitude based on the address, and calculated neighborhood based on those geographical coordinates.
-
-Consolidated the final disposition codes into 6 options:
-  - A: Arrest Made
-  - B: Arrest by Warrant
-  - C: Criminal Citation
-  - D: Traffic Citation Issued, Hazardous
-  - E: Traffic Citation Issued, Non-Hazardous
-  - Other
+  - Consolidated the final disposition codes into 6 groups:
+    - A: Arrest Made
+    - B: Arrest by Warrant
+    - C: Criminal Citation
+    - Other
 - **Modeling**: Several machine learning models were applied:
   - Baseline model (predicting the most frequent class)
   - Logistic Regression
   - Random Forest
   - Multi-Layer Perceptron (MLP)
+  - Convolutional Neural Network (CNN)
 - **Evaluation Metrics**: Models were evaluated using accuracy, precision, recall, and F1-score. Hyperparameter tuning was performed using Grid Search.
 
 ## Results
