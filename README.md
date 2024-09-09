@@ -17,7 +17,7 @@ The data for this project comes from the [San Jose Police Calls For Service data
 ## Methodology
 - **Data Cleaning**: Removed rows with missing data and unnecessary columns.
 - **Feature Engineering**: Created features such as `OFFENSE_HOUR`, `OFFENSE_DAY_OF_WEEK`, and encoded categorical features like `CALLTYPE_CODE`.  Added latitude and longitude based on the address, and calculated neighborhood based on those geographical coordinates.
-  - Consolidated the final disposition codes into 6 groups:
+  - Consolidated the final disposition codes into 4 groups:
     - A: Arrest Made
     - B: Arrest by Warrant
     - C: Criminal Citation
