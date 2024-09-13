@@ -6,11 +6,13 @@ from shapely.geometry import Point
 neighborhoods = gpd.read_file('neighborhoods/Neighborhoods.geojson')
 
 files = [
-    'data/police/policecalls2018.csv.geocoded.csv',
-    'data/police/policecalls2019.csv.geocoded.csv',
-    'data/police/policecalls2020.csv.geocoded.csv',
-    'data/police/policecalls2021.csv.geocoded.csv',
-    'data/police/policecalls2022.csv.geocoded.csv'
+    'data/police/policecalls2013.csv.geocoded.csv',
+    'data/police/policecalls2014.csv.geocoded.csv',
+    'data/police/policecalls2015.csv.geocoded.csv',
+    'data/police/policecalls2016.csv.geocoded.csv',
+    'data/police/policecalls2017.csv.geocoded.csv',
+    'data/police/policecalls2023.csv.geocoded.csv',
+    'data/police/policecalls2024.csv.geocoded.csv'
 ]
 
 for file in files:

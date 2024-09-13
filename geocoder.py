@@ -94,7 +94,14 @@ def add_lat_lon_to_csv(input_file, output_file, nominatim_url, max_workers=10):
 
 if __name__ == "__main__":
     nominatim_url = "http://localhost:8088"  # URL of your locally running Nominatim instance
-    input_files = ["./data/police/policecalls2020.csv", "./data/police/policecalls2021.csv", "./data/police/policecalls2022.csv"]
+    input_files = ["./data/police/policecalls2013.csv", 
+                   "./data/police/policecalls2014.csv", 
+                   "./data/police/policecalls2015.csv",
+                   "./data/police/policecalls2016.csv",
+                   "./data/police/policecalls2017.csv",
+                   "./data/police/policecalls2023.csv",
+                   "./data/police/policecalls2024.csv",
+                   ]
     for input_file in input_files:
         print(f"Processing {input_file}")
         output_file = f"{input_file}.geocoded.csv"  # Path where the output CSV will be saved

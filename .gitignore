@@ -1,0 +1,5 @@
+my_dir
+__pycache__
+.virtual_documents
+.ipynb_checkpoints
+data
