@@ -23,6 +23,7 @@ The data for this project comes from the [San Jose Police Calls For Service data
     - C: Criminal Citation
     - Other
   - ![Final Dispositions Over the Years](images/final_disps_over_years.png)
+    - (Note that 2024 is a partial year)
 - **Modeling**: Several machine learning models were applied:
   - Baseline model (predicting the most frequent class)
   - Logistic Regression
