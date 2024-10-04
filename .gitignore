@@ -3,3 +3,7 @@ __pycache__
 .virtual_documents
 .ipynb_checkpoints
 data
+models
+catboost_info
+.DS_Store
+*.keras

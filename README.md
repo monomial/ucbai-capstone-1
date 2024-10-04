@@ -26,39 +26,61 @@ The data for this project comes from the [San Jose Police Calls For Service data
     - (Note that 2024 is a partial year)
 - **Modeling**: Several machine learning models were applied:
   - Baseline model (predicting the most frequent class)
-  - Logistic Regression
-  - Random Forest
+  - Logistic Regression (LR)
+  - Random Forest (RF)
+  - XGBoost (XGB)
   - Multi-Layer Perceptron (MLP)
-  - Convolutional Neural Network (CNN)
-- **Evaluation Metrics**: Models were evaluated using accuracy, precision, recall, and F1-score. Hyperparameter tuning was performed using Grid Search.
+  - Stacking Classifier: An ensemble of Logistic Regression, Random Forest, and XGBoost models.
+- **Evaluation Metrics**: Models were evaluated using accuracy, precision, recall, and F1-score. 
+  Hyperparameter tuning was performed using Grid Search, or in the case of XGBoost, hyperparameters were tuned using [Optuna](https://optuna.org/).
 
 ## Results
 
+Below are the test results for models trained on the dataset that included calls from 2013 through 9/9/2024.
+
 | Model              | Accuracy  | Recall (macro) | Precision (macro) | F1-score (macro)  |
 |--------------------|-----------|----------:|----------:|----------:|
-| Baseline           | 0.962488  | 0.250000  | 0.240622  | 0.245221  |
-| Logistic Regression| 0.969396  | 0.513951  | 0.691921  | 0.571131  |
-| Random Forest      | 0.957442  | 0.503261  | 0.521498  | 0.507291  |
-| MLP1               | 0.968847  | 0.503827  | 0.688551  | 0.562082  |
-| MLP2               | 0.967549  | 0.469603  | 0.600936  | 0.500041  |
-| MLP3               | 0.969923  | 0.529908  | 0.699869  | 0.586328  |
-| CNN1               | 0.969595  | 0.523061  | 0.692655  | 0.579459  |
-| CNN2               | 0.968741  | 0.487184  | 0.685626  | 0.535631  |
-| CNN3               | 0.968970  | 0.511344  | 0.684971  | 0.565068  |
+| Baseline | 0.959557 | 0.250000 | 0.239889 | 0.244840 |
+| Logistic Regression | 0.967962 | 0.517144 | 0.715816 | 0.570390 |
+| Random Forest | 0.966839 | 0.549022 | 0.672930 | 0.597342 |
+| MLP | 0.968534 | 0.525174 | 0.726581 | 0.586147 |
+| XGBoost | 0.969643 | 0.560165 | 0.721776 | 0.617340 |
+| Stacking Ensemble |	0.969968 | 0.571520 | 0.721708 | 0.627692 |
 
-- The **Baseline model** produced an F1 score of 0.245, as expected, since it only predicts the most frequent class and has limited ability to handle minority outcomes.
-- **Logistic Regression** achieved a strong performance with an F1 score of 0.571, showing effective handling of the imbalanced dataset after tuning.
-- The **Random Forest model** yielded an F1 score of 0.507, performing moderately but struggling slightly with precision compared to Logistic Regression.
-- Among the **Multi-Layer Perceptron models**, **MLP3** performed the best with an F1 score of 0.586, while **MLP1** and **MLP2** achieved scores of 0.562 and 0.500, respectively, indicating that MLP models can capture minority outcomes well with the right configurations.
-- The **Convolutional Neural Network models** showed competitive performance, with **CNN1** achieving an F1 score of 0.579, followed by **CNN3** at 0.565 and **CNN2** at 0.536, suggesting that convolutional networks are capable of strong results on this dataset.
+### Model Performance
 
-Overall, class imbalance continues to present challenges, but several models, especially Logistic Regression, MLP3, and CNN1, show promise in balancing precision and recall for minority classes.
+The table above shows the test results for various models trained on police call data spanning from 2013 to September 2024. The models are evaluated on multiple performance metrics, including accuracy, recall, precision, and F1-score (all using macro averaging). 
+
+- **Baseline Model**: The baseline model, which predicts the most frequent class, shows a high accuracy of 95.96%. However, its F1-score is quite low (0.2448), reflecting poor performance across the less frequent classes.
+  
+- **Logistic Regression**: The logistic regression model achieves a balanced performance with a 96.80% accuracy and an F1-score of 0.5704, significantly improving over the baseline. This model demonstrates strong precision (0.7158), indicating better handling of class distribution.
+
+- **Random Forest**: Random forest performs slightly better than logistic regression, achieving a 96.68% accuracy and improving recall to 0.5490. The model offers a better F1-score (0.5973), indicating an enhanced balance between precision and recall.
+
+- **Multilayer Perceptron (MLP)**: The MLP model shows competitive results with an accuracy of 96.85% and an F1-score of 0.5861. It demonstrates the ability to generalize well, with strong precision (0.7266), performing better than logistic regression and random forest on some metrics.
+
+- **XGBoost**: XGBoost outperforms the previous models with an accuracy of 96.96% and an F1-score of 0.6173, demonstrating the highest recall (0.5602) and consistently high precision (0.7218). This indicates its strength in handling the imbalanced nature of the dataset.
+
+- **Stacking Ensemble**: The stacking ensemble, combining logistic regression, random forest, and XGBoost, delivers the best overall performance. It achieves an accuracy of 96.99%, with a macro F1-score of 0.6277. This suggests that leveraging multiple models helps improve the model's ability to generalize across different call outcomes, offering the best balance of precision (0.7217) and recall (0.5715).
+
+These results indicate that ensemble techniques such as stacking can provide superior performance for complex and imbalanced datasets by combining the strengths of multiple models.
 
 ## Next Steps
-- Explore additional models, such as LSTMs, to capture temporal patterns in the data.
 - Investigate ways to address class imbalance using techniques like SMOTE or adjusting class weights.
 - Consider feature selection to reduce dimensionality and improve model performance.
 
 ## Outline of Project
-- [jupyter notebook focusing on arrests and citations](arrest_only_2.ipynb)
+- [jupyter notebook with models trained on 2013-2024 data](all_years_data.ipynb)
+- [2013](2013.ipynb)
+- [2014](2014.ipynb)
+- [2015](2015.ipynb)
+- [2016](2016.ipynb)
+- [2017](2017.ipynb)
+- [2018](2018.ipynb)
+- [2019](2019.ipynb)
+- [2020](2020.ipynb)
+- [2021](2021.ipynb)
+- [2022](2022.ipynb)
+- [2023](2023.ipynb)
+- [2024](2024.ipynb)
 
