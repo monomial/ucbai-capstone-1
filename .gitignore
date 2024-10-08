@@ -7,3 +7,4 @@ models
 catboost_info
 .DS_Store
 *.keras
+one_hot_encoder.pkl

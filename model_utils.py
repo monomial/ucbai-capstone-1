@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder, PolynomialFeatures
+from sklearn.compose import ColumnTransformer
 from collections import Counter
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -28,8 +29,8 @@ def build_mlp_model(hp, input_shape, num_classes):
     )
     return model
 
-def load_data(years):
-    police_csv_files = [f"data/police/policecalls{year}.csv.neighborhood.csv" for year in years]
+def load_data(years, base_dir = "."):
+    police_csv_files = [f"{base_dir}/data/police/policecalls{year}.csv.neighborhood.csv" for year in years]
 
     # List to hold dataframes
     police_dfs = []
@@ -56,8 +57,9 @@ def transform_offense_date(df):
     # Define the date COVID started
     covid_start_date = pd.to_datetime('2020-03-16')
 
-    # Create a new column 'AFTER_COVID' that is 1 if the OFFENSE_DATE is on or after the covid_start_date, otherwise 0
-    df['AFTER_COVID'] = (df['OFFENSE_DATE'] >= covid_start_date).astype(int)
+    # Create a new column 'AFTER_COVID' that is true if the OFFENSE_DATE is on or after the covid_start_date, otherwise false
+    df['AFTER_COVID'] = df['OFFENSE_DATE'] >= covid_start_date
+    df['AFTER_COVID'] = df['AFTER_COVID'].apply(lambda x: 'Yes' if x else 'No')
 
 def calc_dispo_subset(df):
     # List of target disposition codes to keep as individual classes
@@ -77,16 +79,48 @@ def calc_dispo_subset(df):
     
     return dispo_mapping
 
+def clean_and_transform_data(df):
+    """
+    This function performs data cleaning and transformation on the Police Calls dataset.
 
-def clean_and_transform_data(df, encoder=None):
+    Steps:
+    1. Drop unnecessary columns:
+        - Columns like 'CDTS', 'EID', 'CALL_NUMBER', 'START_DATE', 'REPORT_DATE', 'CITY', 'STATE', 
+          'CALL_TYPE', 'FINAL_DISPO', 'FINAL_DISPO_CODE', and 'ADDRESS' are removed as they are not 
+          needed for the analysis or model building.
+    
+    2. Remove rows with any missing values:
+        - Drop all rows that contain missing values to ensure the dataset is clean and ready for analysis.
+        - Print the number of rows before and after cleaning to keep track of how many records were removed.
+    
+    3. Drop the 'OFFENSE_DATE' and 'OFFENSE_TIME' columns:
+        - These columns are dropped after any necessary features have been extracted, as they are no longer needed.
+
+    4. Calculate the Euclidean distance from the center of San Jose:
+        - Using San Jose's approximate geographical center (Latitude: 37.3382, Longitude: -121.8863),
+          calculate the Euclidean distance from the center for each record based on its 'LATITUDE' and 'LONGITUDE'.
+    
+    5. Normalize the latitude and longitude:
+        - Latitude and longitude values are normalized using StandardScaler to prepare for feature engineering.
+    
+    6. Generate polynomial features:
+        - Using PolynomialFeatures with degree=2, generate additional polynomial terms (e.g., interaction terms)
+          from the normalized latitude and longitude. This helps capture non-linear relationships in the data.
+        - Only the interaction terms are used (skipping the first two columns), and the new features are
+          concatenated back into the original DataFrame.
+
+    7. Return the cleaned and transformed dataset, which includes normalized geographical features, 
+       additional polynomial features, and the distance from the city center.
+    """
+
+    # Dropping unnecessary columns 
+    df = df.drop( 
+        columns=['CDTS', 'EID', 'CALL_NUMBER', 'START_DATE', 'REPORT_DATE', 'CITY', 'STATE', 
+                'CALL_TYPE', 'FINAL_DISPO', 'FINAL_DISPO_CODE', 'ADDRESS'])
+    
     # Remove rows with any missing values from the Police Calls dataset
     clean_df = df.dropna()
     print(f"Police Calls Dataset: {df.shape[0]} rows before cleaning, {clean_df.shape[0]} rows after cleaning.")
-
-    # Dropping unnecessary columns 
-    clean_df = clean_df.drop( \
-        columns=['CDTS', 'EID', 'CALL_NUMBER', 'START_DATE', 'REPORT_DATE', 'CITY', 'STATE', \
-                'CALL_TYPE', 'FINAL_DISPO', 'FINAL_DISPO_CODE', 'ADDRESS'])
 
     # Drop 'OFFENSE_DATE' now that features have been extracted
     clean_df = clean_df.drop(columns=['OFFENSE_DATE', 'OFFENSE_TIME'])
@@ -99,7 +133,7 @@ def clean_and_transform_data(df, encoder=None):
         (clean_df['LATITUDE'] - SJ_CENTER_LAT) ** 2 + 
         (clean_df['LONGITUDE'] - SJ_CENTER_LON) ** 2)
 
-    # Normalize latitude and longitude before adding polynomial featuers
+    # Normalize latitude and longitude before adding polynomial features
     scaler = StandardScaler()
     clean_df[['LATITUDE', 'LONGITUDE']] = scaler.fit_transform(clean_df[['LATITUDE', 'LONGITUDE']])
 
@@ -108,39 +142,20 @@ def clean_and_transform_data(df, encoder=None):
     lat_lon_poly = poly.fit_transform(clean_df[['LATITUDE', 'LONGITUDE']])
 
     # Create a DataFrame with the polynomial features and concatenate with original data
-    lat_lon_poly_df = pd.DataFrame(lat_lon_poly[:, 2:], \
-                                columns=poly.get_feature_names_out(['LATITUDE', 'LONGITUDE'])[2:], \
+    lat_lon_poly_df = pd.DataFrame(lat_lon_poly[:, 2:], 
+                                columns=poly.get_feature_names_out(['LATITUDE', 'LONGITUDE'])[2:], 
                                 index=clean_df.index)
 
     clean_df = pd.concat([clean_df, lat_lon_poly_df], axis=1)
 
-    # Encode categorical columns using One-Hot Encoding
-    # If no encoder is provided, fit one on the current data
-    if encoder is None:
-        encoder = OneHotEncoder(drop='first', sparse_output=False)
-        encoder.fit(clean_df[['CALLTYPE_CODE', 'neighborhood']])
-    
-    # Transform the categorical columns
-    encoded_columns = encoder.transform(clean_df[['CALLTYPE_CODE', 'neighborhood']])
+    return clean_df
 
-    # Create a DataFrame for the encoded columns and concatenate with the original data
-    encoded_df = pd.DataFrame(encoded_columns, 
-                              columns=encoder.get_feature_names_out(['CALLTYPE_CODE', 'neighborhood']), 
-                              index=clean_df.index)
-
-    # Concatenate encoded columns with the clean_df
-    final_df = pd.concat([clean_df, encoded_df], axis=1)
-
-    # Drop the original categorical columns since they have been encoded
-    final_df = final_df.drop(columns=['CALLTYPE_CODE', 'neighborhood'])
-    
-    return final_df, encoder
-
-def split_data(df, mapping_dict):
+def split_data(df, mapping_dict, encoder=None):
     # Define features and target
     X = df.drop(columns=['DISPO_SUBSET'])
     y = df['DISPO_SUBSET']
 
+    # Encode the target variable
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
     print(f'classes = {label_encoder.classes_}')
@@ -148,7 +163,8 @@ def split_data(df, mapping_dict):
     label_names = [mapping_dict[code] for code in label_encoder.classes_]
 
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded)
 
     print(X_train.shape)
     print(X_test.shape)
@@ -156,27 +172,55 @@ def split_data(df, mapping_dict):
     class_labels = [mapping_dict[code] for code in label_encoder.inverse_transform([0, 1, 2, 3])]
     print(class_labels)
 
-    # Scale the features
+    # Identify numeric and categorical columns
+    numeric_columns = X_train.select_dtypes(include=['float64', 'int64']).columns.tolist()
+    categorical_columns = ['CALLTYPE_CODE', 'neighborhood', 'AFTER_COVID']
+
+    # Process categorical features
+    if encoder is None:
+        encoder = OneHotEncoder(drop='first', sparse=False, handle_unknown='ignore')
+        encoder.fit(X_train[categorical_columns])
+
+    # Transform categorical features
+    X_train_cat = encoder.transform(X_train[categorical_columns])
+    X_test_cat = encoder.transform(X_test[categorical_columns])
+
+    # Get feature names for one-hot encoded columns
+    onehot_feature_names = encoder.get_feature_names_out(categorical_columns)
+
+    # Process numeric features
     scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    X_train_num = scaler.fit_transform(X_train[numeric_columns])
+    X_test_num = scaler.transform(X_test[numeric_columns])
 
-    # Convert scaled data back to DataFrame, using the original column names
-    X_train_scaled_df = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
-    X_test_scaled_df = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test.index)
+    # Combine numeric and categorical features
+    X_train_scaled = np.hstack([X_train_num, X_train_cat])
+    X_test_scaled = np.hstack([X_test_num, X_test_cat])
 
+    # Combine feature names
+    all_feature_names = numeric_columns + list(onehot_feature_names)
+
+    # Convert the transformed data back to DataFrame with proper column names
+    X_train_scaled_df = pd.DataFrame(X_train_scaled, columns=all_feature_names, index=X_train.index)
+    X_test_scaled_df = pd.DataFrame(X_test_scaled, columns=all_feature_names, index=X_test.index)
+
+    # Get the class distribution for y_train
     sample_sizes = Counter(y_train)
-    print(sample_sizes)  # This will show you the current class distribution
+    print(sample_sizes)
 
-    # make the majority class 50% of the data
+    # Adjust the class distribution (example: make class 3 equal to the sum of the other classes)
     sample_sizes[3] = sum(sorted(list(sample_sizes.values()))[0:3])
     print(sample_sizes)
 
-    # Undersample
-    rus = RandomUnderSampler(sampling_strategy=sample_sizes, random_state=42)  
+    # Apply undersampling to balance the classes
+    rus = RandomUnderSampler(sampling_strategy=sample_sizes, random_state=42)
     X_train_resampled, y_train_resampled = rus.fit_resample(X_train_scaled_df, y_train)
 
-    return X_train_scaled_df, X_test_scaled_df, y_train, y_test, label_names, class_labels, X_train_resampled, y_train_resampled
+    # Return the processed data and the encoder
+    return (X_train_scaled_df, X_test_scaled_df, y_train, y_test,
+            label_names, class_labels, X_train_resampled, y_train_resampled, encoder)
+
+
 
 if __name__ == "__main__":
     print("Hello, world")
