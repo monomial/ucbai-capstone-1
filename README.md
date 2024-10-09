@@ -53,7 +53,7 @@ This is particularly important in this context because correctly identifying cri
 The table below summarizes the performance of several models trained on police call data spanning 2013 through September 9, 2024. The performance is evaluated using Accuracy, Recall, Precision, and F1-score (all macro-averaged to handle the class imbalance).
 
 | Model            | Accuracy	 | Recall (macro)	| Precision (macro) |	F1-score (macro) |
-|------------------|-----------|----------------|-------------------|------------------|
+|------------------|----------:|---------------:|------------------:|-----------------:|
 | Baseline	       | 0.959557  |	0.250000      |	0.239889	        | 0.244840         |
 | Logistic Regression	| 0.967887 |	0.515198 |	0.714711 |	0.567930 |
 | Random Forest |	0.966305 | 0.529287 |	0.671339 |	0.582632 |
@@ -74,7 +74,7 @@ The table below summarizes the performance of several models trained on police c
 
 - **XGBoost**: XGBoost also performs well, achieving a similar F1-score (0.61) to the MLP, with balanced recall and precision. This shows its capability to handle imbalanced datasets with complex decision boundaries.
 
-- **Ensemble Model**: The ensemble of models (Logistic Regression, Random Forest, MLP, and XGBoost) achieves the best F1-score (0.62), leveraging the strengths of each model. The slight improvement over the individual models suggests that ensemble learning can provide a more robust solution by combining different classifiers.
+- **Ensemble Model**: The ensemble of models (Logistic Regression, Random Forest, and XGBoost) achieves the best F1-score (0.62), leveraging the strengths of each model. The slight improvement over the individual models suggests that ensemble learning can provide a more robust solution by combining different classifiers.
 
 #### Conclusion
 
@@ -85,19 +85,58 @@ All models outperform the baseline significantly in recall and F1-score, highlig
 
 In addition to training models on the full dataset, I also trained and tested the same types of models on one year of data at a time for each year from 2013 to 2024. The goal was to see how the predictive performance changes over the years and to determine whether models trained on the entire dataset (2013-2024) outperform models trained on a single year's worth of data when predicting outcomes for that particular year.
 
-Below are charts for two example years, 2017 and 2024, showing the F1 scores for models trained on just that year's data versus those trained on the entire dataset:
+Below are charts for two example years, 2017 and 2024, showing the F1 scores for models trained on just that year's data versus a random forest model trained on all the other years in the dataset:
 
 **2017 F1 Scores**  
-![2017](images/2017_vs_all_years.png)
+In 2017, the random forest and XGBoost models trained on that year's data performed similarly well, with F1 scores around 0.55. The stacking model achieved the highest F1 score, slightly above 0.58, indicating that combining multiple models provided better predictive power. Interestingly, the random forest model trained on data from all the other years (2013-2024 excluding 2017) performed comparably well, suggesting that general trends in police call outcomes remained relatively consistent across the years.
+
+![2017](images/2017_vs_non_year.png)
 
 **2024 F1 Scores**  
-![2024](images/2024_vs_all_years.png)
+For 2024, the trends were similar, with the stacking model once again achieving the highest F1 score of around 0.48. Both the random forest and XGBoost models trained on 2024 data performed well, though slightly lower than in 2017, suggesting that the models may have faced more difficulty with the most recent year's data. As with 2017, the random forest model trained on all other years also performed similarly, demonstrating that data from earlier years can still provide valuable insights for predicting outcomes in more recent years.
 
-Contrary to my initial expectations, the models trained on the full dataset did not consistently outperform the models trained on individual years across the board. In many cases, the performance of models trained on one year of data was comparable to, or even better than, the models trained on all years of data. 
+![2024](images/2024_vs_non_year.png)
 
-However, **Random Forest** stands out as an exception. The random forest model trained on the full dataset consistently outperformed the models trained on individual years when tested on the respective year’s data. This suggests that, for certain model types, training on a larger, more diverse dataset spanning multiple years can yield more generalizable results. 
+### Feature Importance and Actionable Insights
 
-The results indicate that while leveraging data from multiple years can sometimes improve performance, this approach may not always lead to better results for all models or all years. It highlights the complexity of the dataset and the challenges of building a model that generalizes well across different time periods.
+The random forest model highlights the most important features for predicting police call outcomes, such as the likelihood of an arrest. Below are the top 10 most important features, as determined by the model, and how they translate into actionable insights for operational decision-making:
+
+**Feature Importance Chart:**
+![Feature Importance](images/all_year_random_forest_feature_importance.png)
+
+**Key Features and Recommendations:**
+
+1. **Call Type: MISDEMEANOR WANT**  
+   This call type is the most important predictor of police call outcomes. Misdemeanor warrants often lead to arrests or citations.  
+   **Recommendation**: Allocate more police resources, such as officers specializing in warrant handling or community policing, to areas where misdemeanor warrants are frequently called. Prioritizing these calls can improve efficiency by reducing time spent on low-priority incidents.
+
+2. **PRIORITY**  
+   Calls classified with a higher priority are more likely to result in significant outcomes like arrests.  
+   **Recommendation**: Prioritize officer dispatch to high-priority calls based on the model’s predictions. Implementing a **dynamic dispatch system** could ensure that more officers are available in real-time for these high-priority situations, reducing response times and improving arrest rates.
+
+3. **Geographic Features (LONGITUDE, LATITUDE, and their interactions)**  
+   Location is a strong predictor of outcomes, suggesting certain areas are hotspots for particular types of police activity (e.g., arrests, citations).  
+   **Recommendation**: Use **geospatial analysis** to identify crime hotspots. Police patrols and resources (e.g., specialized units or equipment) should be concentrated in these areas during peak hours to pre-emptively manage potential incidents.
+
+4. **DISTANCE_FROM_CENTER**  
+   Calls that are farther from the central location (e.g., police station) may require different handling due to response time or call complexity.  
+   **Recommendation**: Establish **satellite police stations** or deploy mobile units in distant areas to reduce response times for high-impact calls. This could enhance resource efficiency, particularly for priority calls that occur far from main stations.
+
+5. **Call Type: FELONY WANT**  
+   Felony warrants are strongly associated with arrests, as the law often mandates an arrest in such cases.  
+   **Recommendation**: Ensure that officers trained in handling felony arrests are dispatched to these calls. Additionally, special **felony task forces** could be implemented in areas with high felony warrant activity to expedite handling these situations.
+
+6. **Call Type: TRUANT (TABS)**  
+   Truancy calls are often lower in priority, but their occurrence could indicate broader social or community issues, such as a need for interventions in youth-related crimes.  
+   **Recommendation**: Work with community organizations to address underlying issues that lead to high truancy rates. Officers can collaborate with schools and social services to provide targeted community outreach, which may help reduce future incidents that lead to police involvement.
+
+**General Actionable Insights**:
+- **Resource Optimization**: By understanding which call types are most predictive of arrests (like `MISDEMEANOR WANT` and `FELONY WANT`), police departments can allocate officers more effectively. Specialized response teams could be assigned to handle specific call types, optimizing the use of manpower and equipment.
+  
+- **Geospatial Deployment**: The model highlights the importance of geographic features, meaning that certain areas are more prone to serious outcomes. Deploying more officers or specialized teams in these regions during peak hours could help prevent crime and reduce response times.
+
+- **Strategic Planning**: The feature `PRIORITY` suggests that high-priority calls often result in more critical outcomes. By integrating predictive models into a **call triage system**, dispatchers can allocate resources more efficiently, ensuring that officers are deployed to the most important calls first.
+
 
 ## Next Steps
 - Investigate ways to address class imbalance using techniques like SMOTE or adjusting class weights.

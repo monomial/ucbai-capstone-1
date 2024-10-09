@@ -178,7 +178,7 @@ def split_data(df, mapping_dict, encoder=None):
 
     # Process categorical features
     if encoder is None:
-        encoder = OneHotEncoder(drop='first', sparse=False, handle_unknown='ignore')
+        encoder = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
         encoder.fit(X_train[categorical_columns])
 
     # Transform categorical features
